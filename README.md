@@ -1,5 +1,7 @@
 # @pnpm/git-resolver
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/pnpm/git-resolver.svg)](https://greenkeeper.io/)
+
 > Resolver for git-hosted packages
 
 <!--@shields('npm', 'travis')-->
