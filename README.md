@@ -12,6 +12,29 @@ Install it via npm.
 
     npm install @pnpm/git-resolver
 
+## Usage
+
+<!--@example('./example.js')-->
+```js
+'use strict'
+const got = require('got')
+const resolveFromNpm = require('@pnpm/git-resolver').default
+
+resolveFromNpm({
+  pref: 'kevva/is-negative#16fd36fe96106175d02d066171c44e2ff83bc055'
+}, { getJson })
+.then(resolveResult => console.log(resolveResult))
+//> { id: 'github.com/kevva/is-negative/16fd36fe96106175d02d066171c44e2ff83bc055',
+//    normalizedPref: 'github:kevva/is-negative#16fd36fe96106175d02d066171c44e2ff83bc055',
+//    resolution: { tarball: 'https://codeload.github.com/kevva/is-negative/tar.gz/16fd36fe96106175d02d066171c44e2ff83bc055' } }
+
+function getJson (url, registry) {
+  return got(url, {json: true})
+    .then(response => response.body)
+}
+```
+<!--/@-->
+
 ## License
 
 [MIT](./LICENSE) © [Zoltan Kochan](https://www.kochan.io/)
