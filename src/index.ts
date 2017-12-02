@@ -10,11 +10,21 @@ const gitLogger = logger // TODO: add namespace 'git-logger'
 
 let tryGitHubApi = true
 
-export default async function resolveGit (
-  wantedDependency: {pref: string},
+export default function (
   opts: {
     getJson: <T>(url: string, registry: string) => Promise<T>,
   },
+) {
+  return resolveGit.bind(null, tryResolveViaGitHubApi.bind(null, opts.getJson))
+}
+
+async function resolveGit (
+  tryResolveViaGitHubApiBySpec: (spec: {
+    user: string,
+    project: string,
+    ref: string,
+  }) => string,
+  wantedDependency: {pref: string},
 ): Promise<{
   id: string,
   normalizedPref: string,
@@ -53,7 +63,7 @@ export default async function resolveGit (
   let commitId: string
   if (tryGitHubApi) {
     try {
-      commitId = await tryResolveViaGitHubApi(ghSpec, opts.getJson)
+      commitId = await tryResolveViaGitHubApiBySpec(ghSpec)
     } catch (err) {
       gitLogger.warn({
         err,
@@ -104,12 +114,12 @@ function isSsh (gitSpec: string): boolean {
  * Resolves a 'hosted' package hosted on 'github'.
  */
 async function tryResolveViaGitHubApi (
+  getJson: <T>(url: string, registry: string) => Promise<T>,
   spec: {
     user: string,
     project: string,
     ref: string,
   },
-  getJson: <T>(url: string, registry: string) => Promise<T>,
 ) {
   const url = [
     'https://api.github.com/repos',

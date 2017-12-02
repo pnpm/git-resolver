@@ -18,7 +18,9 @@ Install it via npm.
 ```js
 'use strict'
 const got = require('got')
-const resolveFromNpm = require('@pnpm/git-resolver').default
+const createResolveFromNpm = require('@pnpm/git-resolver').default
+
+const resolveFromNpm = createResolveFromNpm({getJson})
 
 resolveFromNpm({
   pref: 'kevva/is-negative#16fd36fe96106175d02d066171c44e2ff83bc055'

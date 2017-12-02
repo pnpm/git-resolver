@@ -1,6 +1,8 @@
 import test = require('tape')
-import resolveFromGit from '@pnpm/git-resolver'
+import createResolveFromGit from '@pnpm/git-resolver'
 import got = require('got')
+
+const resolveFromGit = createResolveFromGit({getJson})
 
 function getJson (url: string, registry: string) {
   return got(url, {json: true})
@@ -8,7 +10,7 @@ function getJson (url: string, registry: string) {
 }
 
 test('resolveFromGit()', async t => {
-  const resolveResult = await resolveFromGit({pref: 'kevva/is-negative#16fd36fe96106175d02d066171c44e2ff83bc055'}, {getJson})
+  const resolveResult = await resolveFromGit({pref: 'kevva/is-negative#16fd36fe96106175d02d066171c44e2ff83bc055'})
   t.deepEqual(resolveResult, {
     id: 'github.com/kevva/is-negative/16fd36fe96106175d02d066171c44e2ff83bc055',
     normalizedPref: 'github:kevva/is-negative#16fd36fe96106175d02d066171c44e2ff83bc055',
