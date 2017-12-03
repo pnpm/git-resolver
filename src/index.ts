@@ -1,4 +1,5 @@
 import logger from '@pnpm/logger'
+import got = require('got')
 import git = require('graceful-git')
 import normalizeSsh = require('normalize-ssh')
 import path = require('path')
@@ -11,81 +12,72 @@ const gitLogger = logger // TODO: add namespace 'git-logger'
 let tryGitHubApi = true
 
 export default function (
-  opts: {
-    getJson: <T>(url: string, registry: string) => Promise<T>,
-  },
+  opts: {},
 ) {
-  return resolveGit.bind(null, tryResolveViaGitHubApi.bind(null, opts.getJson))
-}
+  return async function resolveGit (
+    wantedDependency: {pref: string},
+  ): Promise<{
+    id: string,
+    normalizedPref: string,
+    resolution: ({commit: string, repo: string, type: 'git'} | {tarball: string}),
+  } | null> {
+    const parsedSpec = parsePref(wantedDependency.pref)
 
-async function resolveGit (
-  tryResolveViaGitHubApiBySpec: (spec: {
-    user: string,
-    project: string,
-    ref: string,
-  }) => string,
-  wantedDependency: {pref: string},
-): Promise<{
-  id: string,
-  normalizedPref: string,
-  resolution: ({commit: string, repo: string, type: 'git'} | {tarball: string}),
-} | null> {
-  const parsedSpec = parsePref(wantedDependency.pref)
+    if (!parsedSpec) return null
 
-  if (!parsedSpec) return null
+    const isGitHubHosted = parsedSpec.hosted && parsedSpec.hosted.type === 'github'
 
-  const isGitHubHosted = parsedSpec.hosted && parsedSpec.hosted.type === 'github'
-
-  if (!isGitHubHosted || isSsh(wantedDependency.pref)) {
-    const commit = await resolveRef(parsedSpec.fetchSpec, parsedSpec.gitCommittish || 'master')
-    return {
-      id: parsedSpec.fetchSpec
-        .replace(/^.*:\/\/(git@)?/, '')
-        .replace(/:/g, '+')
-        .replace(/\.git$/, '') + '/' + commit,
-      normalizedPref: parsedSpec.normalizedPref,
-      resolution: {
-        commit,
-        repo: parsedSpec.fetchSpec,
-        type: 'git',
-      },
+    if (!isGitHubHosted || isSsh(wantedDependency.pref)) {
+      const commit = await resolveRef(parsedSpec.fetchSpec, parsedSpec.gitCommittish || 'master')
+      return {
+        id: parsedSpec.fetchSpec
+          .replace(/^.*:\/\/(git@)?/, '')
+          .replace(/:/g, '+')
+          .replace(/\.git$/, '') + '/' + commit,
+        normalizedPref: parsedSpec.normalizedPref,
+        resolution: {
+          commit,
+          repo: parsedSpec.fetchSpec,
+          type: 'git',
+        },
+      }
     }
-  }
 
-  const parts = normalizeRepoUrl(parsedSpec).split('#')
-  const repo = parts[0]
+    const parts = normalizeRepoUrl(parsedSpec).split('#')
+    const repo = parts[0]
 
-  const ghSpec = {
-    project: parsedSpec.hosted!.project,
-    ref: parsedSpec.hosted!.committish || 'HEAD',
-    user: parsedSpec.hosted!.user,
-  }
-  let commitId: string
-  if (tryGitHubApi) {
-    try {
-      commitId = await tryResolveViaGitHubApiBySpec(ghSpec)
-    } catch (err) {
-      gitLogger.warn({
-        err,
-        message: `Error while trying to resolve ${parsedSpec.fetchSpec} via GitHub API`,
-      })
+    const ghSpec = {
+      project: parsedSpec.hosted!.project,
+      ref: parsedSpec.hosted!.committish || 'HEAD',
+      user: parsedSpec.hosted!.user,
+    }
+    let commitId: string
+    if (tryGitHubApi) {
+      try {
+        commitId = await tryResolveViaGitHubApi(ghSpec)
+      } catch (err) {
+        gitLogger.warn({
+          err,
+          message: `Error while trying to resolve ${parsedSpec.fetchSpec} via GitHub API`,
+        })
 
-      // if it fails once, don't bother retrying for other packages
-      tryGitHubApi = false
+        // if it fails once, don't bother retrying for other packages
+        tryGitHubApi = false
 
+        commitId = await resolveRef(repo, ghSpec.ref)
+      }
+    } else {
       commitId = await resolveRef(repo, ghSpec.ref)
     }
-  } else {
-    commitId = await resolveRef(repo, ghSpec.ref)
-  }
 
-  const tarballResolution = {
-    tarball: `https://codeload.github.com/${ghSpec.user}/${ghSpec.project}/tar.gz/${commitId}`,
-  }
-  return {
-    id: ['github.com', ghSpec.user, ghSpec.project, commitId].join('/'),
-    normalizedPref: parsedSpec.normalizedPref,
-    resolution: tarballResolution,
+    const tarballResolution = {
+      tarball: `https://codeload.github.com/${ghSpec.user}/${ghSpec.project}/tar.gz/${commitId}`,
+    }
+    return {
+      id: ['github.com', ghSpec.user, ghSpec.project, commitId].join('/'),
+      normalizedPref: parsedSpec.normalizedPref,
+      resolution: tarballResolution,
+    }
   }
 }
 
@@ -114,7 +106,6 @@ function isSsh (gitSpec: string): boolean {
  * Resolves a 'hosted' package hosted on 'github'.
  */
 async function tryResolveViaGitHubApi (
-  getJson: <T>(url: string, registry: string) => Promise<T>,
   spec: {
     user: string,
     project: string,
@@ -128,9 +119,8 @@ async function tryResolveViaGitHubApi (
     'commits',
     spec.ref,
   ].join('/')
-  // TODO: investigate what should be the correct registry path here
-  const body = await getJson<GitHubRepoResponse>(url, url)
-  return body.sha
+  const response = await got(url, {json: true})
+  return response.body.sha
 }
 
 interface GitHubRepoResponse {

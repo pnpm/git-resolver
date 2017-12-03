@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@types/node": "^8.0.53",
+    "got": "^8.0.1",
     "graceful-git": "^1.0.1",
     "hosted-git-info": "^2.5.0",
     "normalize-ssh": "^1.0.0"
@@ -45,7 +46,6 @@
   "devDependencies": {
     "@pnpm/logger": "^1.0.0",
     "@types/tape": "^4.2.31",
-    "got": "^8.0.0",
     "mos": "^2.0.0-alpha.3",
     "mos-plugin-readme": "^1.0.4",
     "package-preview": "^1.0.1",

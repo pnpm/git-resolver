@@ -1,13 +1,7 @@
 import test = require('tape')
 import createResolveFromGit from '@pnpm/git-resolver'
-import got = require('got')
 
-const resolveFromGit = createResolveFromGit({getJson})
-
-function getJson (url: string, registry: string) {
-  return got(url, {json: true})
-    .then((response: any) => response.body)
-}
+const resolveFromGit = createResolveFromGit({})
 
 test('resolveFromGit()', async t => {
   const resolveResult = await resolveFromGit({pref: 'kevva/is-negative#16fd36fe96106175d02d066171c44e2ff83bc055'})

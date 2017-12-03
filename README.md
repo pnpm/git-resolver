@@ -17,14 +17,13 @@ Install it via npm.
 <!--@example('./example.js')-->
 ```js
 'use strict'
-const got = require('got')
 const createResolveFromNpm = require('@pnpm/git-resolver').default
 
-const resolveFromNpm = createResolveFromNpm({getJson})
+const resolveFromNpm = createResolveFromNpm({})
 
 resolveFromNpm({
   pref: 'kevva/is-negative#16fd36fe96106175d02d066171c44e2ff83bc055'
-}, { getJson })
+})
 .then(resolveResult => console.log(JSON.stringify(resolveResult, null, 2)))
 //> {
 //    "id": "github.com/kevva/is-negative/16fd36fe96106175d02d066171c44e2ff83bc055",
@@ -33,11 +32,6 @@ resolveFromNpm({
 //      "tarball": "https://codeload.github.com/kevva/is-negative/tar.gz/16fd36fe96106175d02d066171c44e2ff83bc055"
 //    }
 //  }
-
-function getJson (url, registry) {
-  return got(url, {json: true})
-    .then(response => response.body)
-}
 ```
 <!--/@-->
 
