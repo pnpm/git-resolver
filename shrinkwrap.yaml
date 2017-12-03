@@ -10,6 +10,7 @@ devDependencies:
   mos: 2.0.0-alpha.3
   mos-plugin-readme: 1.0.4
   package-preview: 1.0.1
+  rimraf: 2.6.2
   tape: 4.8.0
   ts-node: 3.3.0
   tslint: 5.8.0
@@ -3243,6 +3244,7 @@ specifiers:
   mos-plugin-readme: ^1.0.4
   normalize-ssh: ^1.0.0
   package-preview: ^1.0.1
+  rimraf: ^2.6.2
   tape: ^4.8.0
   ts-node: ^3.3.0
   tslint: ^5.8.0
