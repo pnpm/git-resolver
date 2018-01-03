@@ -37,7 +37,7 @@
     "@pnpm/logger": "^1.0.0"
   },
   "dependencies": {
-    "@types/node": "^8.0.53",
+    "@types/node": "8.5.4",
     "got": "^8.0.1",
     "graceful-git": "^1.0.1",
     "hosted-git-info": "^2.5.0",
