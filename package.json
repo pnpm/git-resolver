@@ -13,7 +13,7 @@
   "scripts": {
     "lint": "tslint -c tslint.json --project .",
     "tsc": "rimraf lib && tsc",
-    "test": "npm run lint && preview && ts-node test && mos t",
+    "test": "npm run lint && preview && ts-node test --type-check && mos t",
     "md": "mos",
     "prepublishOnly": "npm run tsc",
     "fix": "tslint -c tslint.json --project . --fix"
@@ -37,7 +37,7 @@
     "@pnpm/logger": "^1.0.0"
   },
   "dependencies": {
-    "@types/node": "^8.0.53",
+    "@types/node": "^9.3.0",
     "got": "^8.0.1",
     "graceful-git": "^1.0.1",
     "hosted-git-info": "^2.5.0",
