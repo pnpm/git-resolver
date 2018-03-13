@@ -38,10 +38,12 @@
   },
   "dependencies": {
     "@types/node": "^9.3.0",
+    "@types/semver": "^5.5.0",
     "got": "^8.0.1",
     "graceful-git": "^1.0.1",
     "hosted-git-info": "^2.5.0",
-    "normalize-ssh": "^1.0.0"
+    "normalize-ssh": "^1.0.0",
+    "semver": "^5.5.0"
   },
   "devDependencies": {
     "@pnpm/logger": "^1.0.0",

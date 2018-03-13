@@ -3,6 +3,7 @@ import got = require('got')
 import git = require('graceful-git')
 import normalizeSsh = require('normalize-ssh')
 import path = require('path')
+import semver = require('semver')
 import parsePref, {HostedPackageSpec} from './parsePref'
 
 export {HostedPackageSpec}
@@ -28,7 +29,7 @@ export default function (
     const isGitHubHosted = parsedSpec.hosted && parsedSpec.hosted.type === 'github'
 
     if (!isGitHubHosted || isSsh(wantedDependency.pref)) {
-      const commit = await resolveRef(parsedSpec.fetchSpec, parsedSpec.gitCommittish || 'master')
+      const commit = await resolveRef(parsedSpec.fetchSpec, parsedSpec.gitCommittish || 'master', parsedSpec.gitRange)
       return {
         id: parsedSpec.fetchSpec
           .replace(/^.*:\/\/(git@)?/, '')
@@ -52,7 +53,7 @@ export default function (
       user: parsedSpec.hosted!.user,
     }
     let commitId: string
-    if (tryGitHubApi) {
+    if (tryGitHubApi && !parsedSpec.gitRange) {
       try {
         commitId = await tryResolveViaGitHubApi(ghSpec)
       } catch (err) {
@@ -64,10 +65,10 @@ export default function (
         // if it fails once, don't bother retrying for other packages
         tryGitHubApi = false
 
-        commitId = await resolveRef(repo, ghSpec.ref)
+        commitId = await resolveRef(repo, parsedSpec.gitCommittish || 'master', parsedSpec.gitRange)
       }
     } else {
-      commitId = await resolveRef(repo, ghSpec.ref)
+      commitId = await resolveRef(repo, parsedSpec.gitCommittish || 'master', parsedSpec.gitRange)
     }
 
     const tarballResolution = {
@@ -81,15 +82,54 @@ export default function (
   }
 }
 
-async function resolveRef (repo: string, ref: string) {
-  const result = await git(['ls-remote', '--refs', repo, ref])
-  // should output something like:
-  //   572bc3d4e16220c2e986091249e62a5913294b25    	refs/heads/master
+function resolveVTags (vTags: string[], range: string) {
+  return semver.maxSatisfying(vTags, range, true)
+}
 
-  // if no ref was found, assume that ref is the commit ID
-  if (!result.stdout) return ref
+async function getRepoRefs (repo: string) {
+  const result = await git(['ls-remote', '--refs', repo])
+  const refs = result.stdout.split('\n').reduce((obj: object, line: string) => {
+    const commitAndRef = line.split('\t')
+    const commit = commitAndRef[0]
+    const ref = commitAndRef[1]
+    obj[ref] = commit
+    return obj
+  }, {})
+  return refs
+}
 
-  return result.stdout.match(/^[a-z0-9]+/)[0]
+async function resolveRef (repo: string, ref: string, range?: string) {
+  const refs = await getRepoRefs(repo)
+  const vTags =
+    Object.keys(refs)
+      // using the same semantics of version tags as https://github.com/zkat/pacote
+    .filter((key: string) => /^refs\/tags\/v?(\d+\.\d+\.\d+(?:[-+].+)?)(\^{})?$/.test(key))
+    .map((key: string) => {
+      return key
+        .replace(/^refs\/tags\/v?/, '')
+        .replace(/\^{}$/, '') // accept annotated tags
+    })
+    .filter((key: string) => semver.valid(key, true))
+  let refVTag = range ? resolveVTags(vTags, range) : undefined
+  if (refVTag) {
+    refVTag =
+      refs[`refs/tags/${refVTag}^{}`] || // prefer annotated tags
+      refs[`refs/tags/${refVTag}`]
+  }
+  const refCommit = (ref.match(/^[0-9a-f]+/) || [])[0]
+
+  const commitId =
+    refVTag ||
+    refs[ref] ||
+    refs[`refs/tags/${ref}^{}`] || // prefer annotated tags
+    refs[`refs/tags/${ref}`] ||
+    refs[`refs/heads/${ref}`] ||
+    refCommit
+  if (!commitId) {
+    throw new Error(`Could not resolve ${range || ref} to a commit of ${repo}.`)
+  }
+
+  return commitId
 }
 
 function normalizeRepoUrl (parsedSpec: HostedPackageSpec) {

@@ -12,12 +12,9 @@ export type HostedPackageSpec = ({
     committish: string,
   },
   normalizedPref: string,
-} & ({
   gitCommittish: string | null,
-} | {
-  gitCommittish: null,
-  gitRange: string,
-}))
+  gitRange?: string,
+})
 
 const gitProtocols = new Set([
   'git',
