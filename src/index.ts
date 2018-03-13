@@ -100,36 +100,41 @@ async function getRepoRefs (repo: string) {
 
 async function resolveRef (repo: string, ref: string, range?: string) {
   const refs = await getRepoRefs(repo)
-  const vTags =
-    Object.keys(refs)
-      // using the same semantics of version tags as https://github.com/zkat/pacote
-    .filter((key: string) => /^refs\/tags\/v?(\d+\.\d+\.\d+(?:[-+].+)?)(\^{})?$/.test(key))
-    .map((key: string) => {
-      return key
-        .replace(/^refs\/tags\/v?/, '')
-        .replace(/\^{}$/, '') // accept annotated tags
-    })
-    .filter((key: string) => semver.valid(key, true))
-  let refVTag = range ? resolveVTags(vTags, range) : undefined
-  if (refVTag) {
-    refVTag =
-      refs[`refs/tags/${refVTag}^{}`] || // prefer annotated tags
-      refs[`refs/tags/${refVTag}`]
-  }
-  const refCommit = (ref.match(/^[0-9a-f]+/) || [])[0]
+  if (!range) {
+    const commitId =
+      refs[ref] ||
+      refs[`refs/tags/${ref}^{}`] || // prefer annotated tags
+      refs[`refs/tags/${ref}`] ||
+      refs[`refs/heads/${ref}`] ||
+      (ref.match(/^[0-9a-f]{40}/) || [])[0]
 
-  const commitId =
-    refVTag ||
-    refs[ref] ||
-    refs[`refs/tags/${ref}^{}`] || // prefer annotated tags
-    refs[`refs/tags/${ref}`] ||
-    refs[`refs/heads/${ref}`] ||
-    refCommit
-  if (!commitId) {
-    throw new Error(`Could not resolve ${range || ref} to a commit of ${repo}.`)
-  }
+    if (!commitId) {
+      throw new Error(`Could not resolve ${ref} to a commit of ${repo}.`)
+    }
 
-  return commitId
+    return commitId
+  } else {
+    const vTags =
+      Object.keys(refs)
+        // using the same semantics of version tags as https://github.com/zkat/pacote
+      .filter((key: string) => /^refs\/tags\/v?(\d+\.\d+\.\d+(?:[-+].+)?)(\^{})?$/.test(key))
+      .map((key: string) => {
+        return key
+          .replace(/^refs\/tags\/v?/, '')
+          .replace(/\^{}$/, '') // accept annotated tags
+      })
+      .filter((key: string) => semver.valid(key, true))
+    const refVTag = resolveVTags(vTags, range)
+    const commitId = refVTag &&
+      (refs[`refs/tags/${refVTag}^{}`] || // prefer annotated tags
+      refs[`refs/tags/${refVTag}`])
+
+    if (!commitId) {
+      throw new Error(`Could not resolve ${range} to a commit of ${repo}. Available versions are: ${vTags.join(', ')}`)
+    }
+
+    return commitId
+  }
 }
 
 function normalizeRepoUrl (parsedSpec: HostedPackageSpec) {
