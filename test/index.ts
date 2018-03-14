@@ -94,3 +94,17 @@ test('resolveFromGit() fails when semver ref not found', async t => {
     t.end()
   }
 })
+
+test('resolveFromGit() with commit from non-github repo', async t => {
+  const resolveResult = await resolveFromGit({pref: 'git+http://ikt.pm2.io/ikt.git#3325a3e39a502418dc2e2e4bf21529cbbde96228'})
+  t.deepEqual(resolveResult, {
+    id: 'ikt.pm2.io/ikt/3325a3e39a502418dc2e2e4bf21529cbbde96228',
+    normalizedPref: 'git+http://ikt.pm2.io/ikt.git#3325a3e39a502418dc2e2e4bf21529cbbde96228',
+    resolution: {
+      commit: '3325a3e39a502418dc2e2e4bf21529cbbde96228',
+      repo: 'http://ikt.pm2.io/ikt.git',
+      type: 'git',
+    },
+  })
+  t.end()
+})
