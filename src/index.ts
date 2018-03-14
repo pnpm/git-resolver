@@ -49,13 +49,13 @@ export default function (
 
     const ghSpec = {
       project: parsedSpec.hosted!.project,
-      ref: parsedSpec.hosted!.committish || 'HEAD',
+      ref: parsedSpec.hosted!.committish || 'master',
       user: parsedSpec.hosted!.user,
     }
     let commitId: string
-    if (tryGitHubApi && !parsedSpec.gitRange) {
+    if (tryGitHubApi) {
       try {
-        commitId = await tryResolveViaGitHubApi(ghSpec)
+        commitId = resolveRefFromRefs(await tryResolveViaGitHubApi(ghSpec), repo, ghSpec.ref, parsedSpec.gitRange)
       } catch (err) {
         gitLogger.warn({
           err,
@@ -100,6 +100,10 @@ async function getRepoRefs (repo: string) {
 
 async function resolveRef (repo: string, ref: string, range?: string) {
   const refs = await getRepoRefs(repo)
+  return resolveRefFromRefs(refs, repo, ref, range)
+}
+
+function resolveRefFromRefs (refs: {[ref: string]: string}, repo: string, ref: string, range?: string) {
   if (!range) {
     const commitId =
       refs[ref] ||
@@ -154,20 +158,22 @@ async function tryResolveViaGitHubApi (
   spec: {
     user: string,
     project: string,
-    ref: string,
   },
 ) {
-  const url = [
-    'https://api.github.com/repos',
-    spec.user,
-    spec.project,
-    'commits',
-    spec.ref,
-  ].join('/')
+  const url = `https://api.github.com/repos/${spec.user}/${spec.project}/git/refs`
   const response = await got(url, {json: true})
-  return response.body.sha
+  return response.body.reduce((acc: object, refInfo: RefInfo) => {
+    acc[refInfo.ref] = refInfo.object.sha
+    return acc
+  }, {})
 }
 
-interface GitHubRepoResponse {
-  sha: string
+interface RefInfo {
+  ref: string,
+  url: string,
+  object: {
+    sha: string,
+    type: 'commit' | 'tag',
+    url: string,
+  },
 }

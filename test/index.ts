@@ -42,10 +42,10 @@ test('resolveFromGit() with branch', async t => {
 test('resolveFromGit() with tag', async t => {
   const resolveResult = await resolveFromGit({pref: 'zkochan/is-negative#2.0.1'})
   t.deepEqual(resolveResult, {
-    id: 'github.com/zkochan/is-negative/6dcce91c268805d456b8a575b67d7febc7ae2933',
+    id: 'github.com/zkochan/is-negative/2fa0531ab04e300a24ef4fd7fb3a280eccb7ccc5',
     normalizedPref: 'github:zkochan/is-negative#2.0.1',
     resolution: {
-      tarball: 'https://codeload.github.com/zkochan/is-negative/tar.gz/6dcce91c268805d456b8a575b67d7febc7ae2933'
+      tarball: 'https://codeload.github.com/zkochan/is-negative/tar.gz/2fa0531ab04e300a24ef4fd7fb3a280eccb7ccc5'
     }
   })
   t.end()
