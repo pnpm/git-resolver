@@ -10,7 +10,8 @@ test('resolveFromGit() with commit', async t => {
     normalizedPref: 'github:zkochan/is-negative#163360a8d3ae6bee9524541043197ff356f8ed99',
     resolution: {
       tarball: 'https://codeload.github.com/zkochan/is-negative/tar.gz/163360a8d3ae6bee9524541043197ff356f8ed99'
-    }
+    },
+    resolvedVia: 'git-repository',
   })
   t.end()
 })
@@ -22,7 +23,8 @@ test('resolveFromGit() with no commit', async t => {
     normalizedPref: 'github:zkochan/is-negative',
     resolution: {
       tarball: 'https://codeload.github.com/zkochan/is-negative/tar.gz/1d7e288222b53a0cab90a331f1865220ec29560c'
-    }
+    },
+    resolvedVia: 'git-repository',
   })
   t.end()
 })
@@ -34,7 +36,8 @@ test('resolveFromGit() with branch', async t => {
     normalizedPref: 'github:zkochan/is-negative#canary',
     resolution: {
       tarball: 'https://codeload.github.com/zkochan/is-negative/tar.gz/4c39fbc124cd4944ee51cb082ad49320fab58121'
-    }
+    },
+    resolvedVia: 'git-repository',
   })
   t.end()
 })
@@ -46,7 +49,8 @@ test('resolveFromGit() with tag', async t => {
     normalizedPref: 'github:zkochan/is-negative#2.0.1',
     resolution: {
       tarball: 'https://codeload.github.com/zkochan/is-negative/tar.gz/2fa0531ab04e300a24ef4fd7fb3a280eccb7ccc5'
-    }
+    },
+    resolvedVia: 'git-repository',
   })
   t.end()
 })
@@ -58,7 +62,8 @@ test('resolveFromGit() with tag (v-prefixed tag)', async t => {
     normalizedPref: 'github:andreineculau/npm-publish-git#v0.0.7',
     resolution: {
       tarball: 'https://codeload.github.com/andreineculau/npm-publish-git/tar.gz/a2f8d94562884e9529cb12c0818312ac87ab7f0b'
-    }
+    },
+    resolvedVia: 'git-repository',
   })
   t.end()
 })
@@ -70,7 +75,8 @@ test('resolveFromGit() with strict semver', async t => {
     normalizedPref: 'github:zkochan/is-negative#semver:1.0.0',
     resolution: {
       tarball: 'https://codeload.github.com/zkochan/is-negative/tar.gz/163360a8d3ae6bee9524541043197ff356f8ed99'
-    }
+    },
+    resolvedVia: 'git-repository',
   })
   t.end()
 })
@@ -82,7 +88,8 @@ test('resolveFromGit() with strict semver (v-prefixed tag)', async t => {
     normalizedPref: 'github:andreineculau/npm-publish-git#semver:v0.0.7',
     resolution: {
       tarball: 'https://codeload.github.com/andreineculau/npm-publish-git/tar.gz/a2f8d94562884e9529cb12c0818312ac87ab7f0b'
-    }
+    },
+    resolvedVia: 'git-repository',
   })
   t.end()
 })
@@ -94,7 +101,8 @@ test('resolveFromGit() with range semver', async t => {
     normalizedPref: 'github:zkochan/is-negative#semver:^1.0.0',
     resolution: {
       tarball: 'https://codeload.github.com/zkochan/is-negative/tar.gz/9a89df745b2ec20ae7445d3d9853ceaeef5b0b72'
-    }
+    },
+    resolvedVia: 'git-repository',
   })
   t.end()
 })
@@ -106,7 +114,8 @@ test('resolveFromGit() with range semver (v-prefixed tag)', async t => {
     normalizedPref: 'github:andreineculau/npm-publish-git#semver:<=v0.0.7',
     resolution: {
       tarball: 'https://codeload.github.com/andreineculau/npm-publish-git/tar.gz/a2f8d94562884e9529cb12c0818312ac87ab7f0b'
-    }
+    },
+    resolvedVia: 'git-repository',
   })
   t.end()
 })
@@ -141,6 +150,7 @@ test('resolveFromGit() with commit from non-github repo', async t => {
       repo: 'http://ikt.pm2.io/ikt.git',
       type: 'git',
     },
+    resolvedVia: 'git-repository',
   })
   t.end()
 })

@@ -30,7 +30,8 @@ resolveFromNpm({
 //    "normalizedPref": "github:kevva/is-negative#16fd36fe96106175d02d066171c44e2ff83bc055",
 //    "resolution": {
 //      "tarball": "https://codeload.github.com/kevva/is-negative/tar.gz/16fd36fe96106175d02d066171c44e2ff83bc055"
-//    }
+//    },
+//    "resolvedVia": "git-repository"
 //  }
 ```
 <!--/@-->

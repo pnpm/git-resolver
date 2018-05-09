@@ -1,4 +1,5 @@
 import logger from '@pnpm/logger'
+import {ResolveResult} from '@pnpm/resolver-base'
 import got = require('got')
 import git = require('graceful-git')
 import normalizeSsh = require('normalize-ssh')
@@ -17,11 +18,7 @@ export default function (
 ) {
   return async function resolveGit (
     wantedDependency: {pref: string},
-  ): Promise<{
-    id: string,
-    normalizedPref: string,
-    resolution: ({commit: string, repo: string, type: 'git'} | {tarball: string}),
-  } | null> {
+  ): Promise<ResolveResult | null> {
     const parsedSpec = parsePref(wantedDependency.pref)
 
     if (!parsedSpec) return null
@@ -40,7 +37,8 @@ export default function (
           commit,
           repo: parsedSpec.fetchSpec,
           type: 'git',
-        },
+        } as ({ type: string } & object),
+        resolvedVia: 'git-repository',
       }
     }
 
@@ -75,9 +73,10 @@ export default function (
       tarball: `https://codeload.github.com/${ghSpec.user}/${ghSpec.project}/tar.gz/${commitId}`,
     }
     return {
-      id: ['github.com', ghSpec.user, ghSpec.project, commitId].join('/'),
+      id: `github.com/${ghSpec.user}/${ghSpec.project}/${commitId}`,
       normalizedPref: parsedSpec.normalizedPref,
       resolution: tarballResolution,
+      resolvedVia: 'git-repository',
     }
   }
 }
