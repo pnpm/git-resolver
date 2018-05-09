@@ -3,6 +3,7 @@ import got = require('got')
 import git = require('graceful-git')
 import normalizeSsh = require('normalize-ssh')
 import path = require('path')
+import R = require('ramda')
 import semver = require('semver')
 import parsePref, {HostedPackageSpec} from './parsePref'
 
@@ -10,10 +11,16 @@ export {HostedPackageSpec}
 
 const gitLogger = logger // TODO: add namespace 'git-logger'
 
+const COMMIT_SHA_REGEXP = /^[a-f0-9]{5,40}$/
+
+const isCommitSha = (target: string): boolean => COMMIT_SHA_REGEXP.test(target)
+
 let tryGitHubApi = true
 
 export default function (
-  opts: {},
+  opts: {
+    store: string,
+  },
 ) {
   return async function resolveGit (
     wantedDependency: {pref: string},
@@ -111,6 +118,15 @@ function resolveRefFromRefs (refs: {[ref: string]: string}, repo: string, ref: s
       refs[`refs/tags/${ref}`] ||
       refs[`refs/heads/${ref}`] ||
       (ref.match(/^[0-9a-f]{40}/) || [])[0]
+
+    const lowercaseRef = ref.toLowerCase()
+    if (isCommitSha(lowercaseRef)) {
+      for (const sha of R.values(refs)) {
+        if (sha.startsWith(lowercaseRef)) {
+          return sha
+        }
+      }
+    }
 
     if (!commitId) {
       throw new Error(`Could not resolve ${ref} to a commit of ${repo}.`)

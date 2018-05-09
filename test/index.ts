@@ -15,6 +15,30 @@ test('resolveFromGit() with commit', async t => {
   t.end()
 })
 
+test('resolveFromGit() with commit chunk, when the commit is referenced', async t => {
+  const resolveResult = await resolveFromGit({pref: 'zkochan/is-negative#163360a8d'})
+  t.deepEqual(resolveResult, {
+    id: 'github.com/zkochan/is-negative/163360a8d3ae6bee9524541043197ff356f8ed99',
+    normalizedPref: 'github:zkochan/is-negative#163360a8d',
+    resolution: {
+      tarball: 'https://codeload.github.com/zkochan/is-negative/tar.gz/163360a8d3ae6bee9524541043197ff356f8ed99'
+    }
+  })
+  t.end()
+})
+
+test('resolveFromGit() with commit chunk', async t => {
+  const resolveResult = await resolveFromGit({pref: 'zkochan/is-negative#fe0a4204f'})
+  t.deepEqual(resolveResult, {
+    id: 'github.com/zkochan/is-negative/fe0a4204fcf8e42a30358a06e77f72a77c21c9ce',
+    normalizedPref: 'github:zkochan/is-negative#fe0a4204f',
+    resolution: {
+      tarball: 'https://codeload.github.com/zkochan/is-negative/tar.gz/fe0a4204fcf8e42a30358a06e77f72a77c21c9ce'
+    }
+  })
+  t.end()
+})
+
 test('resolveFromGit() with no commit', async t => {
   const resolveResult = await resolveFromGit({pref: 'zkochan/is-negative'})
   t.deepEqual(resolveResult, {

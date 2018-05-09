@@ -1,10 +1,13 @@
 dependencies:
+  '@pnpm/git-resolver': 'link:../__package_previews__/git-resolver/@pnpm/git-resolver'
   '@types/node': 9.6.5
+  '@types/ramda': 0.25.24
   '@types/semver': 5.5.0
   got: 8.3.0
   graceful-git: 1.0.3
   hosted-git-info: 2.6.0
   normalize-ssh: 1.0.0
+  ramda: 0.25.0
   semver: 5.5.0
 devDependencies:
   '@pnpm/logger': 1.0.1
@@ -77,6 +80,10 @@ packages:
   /@types/node/9.6.5:
     resolution:
       integrity: sha512-NOLEgsT6UiDTjnWG5Hd2Mg25LRyz/oe8ql3wbjzgSFeRzRROhPmtlsvIrei4B46UjERF0td9SZ1ZXPLOdcrBHg==
+  /@types/ramda/0.25.24:
+    dev: false
+    resolution:
+      integrity: sha512-c0TmWA7d4y9KLJJwL/cLPEfSReSgFQK9BtemcCATT48lMeyD7HG8IfGY8bamSuz/Byx1l+13hZV0PCvHsgMB3w==
   /@types/semver/5.5.0:
     dev: false
     resolution:
@@ -2353,6 +2360,10 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha1-Q2CxfGETatOAeDl/8RQW4Ybc+7g=
+  /ramda/0.25.0:
+    dev: false
+    resolution:
+      integrity: sha512-GXpfrYVPwx3K7RQ6aYT8KPS8XViSXUVJT1ONhoKPE9VAleW42YE+U+8VEyGWt41EnEQW7gwecYJriTI0pKoecQ==
   /rc/1.2.6:
     dependencies:
       deep-extend: 0.4.2
@@ -3279,6 +3290,7 @@ shrinkwrapVersion: 3
 specifiers:
   '@pnpm/logger': ^1.0.0
   '@types/node': ^9.3.0
+  '@types/ramda': ^0.25.24
   '@types/semver': ^5.5.0
   '@types/tape': ^4.2.31
   got: ^8.0.1
@@ -3288,6 +3300,7 @@ specifiers:
   mos-plugin-readme: ^1.0.4
   normalize-ssh: ^1.0.0
   package-preview: ^1.0.1
+  ramda: ^0.25.0
   rimraf: ^2.6.2
   semver: ^5.5.0
   tape: ^4.8.0
