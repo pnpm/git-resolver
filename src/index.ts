@@ -1,6 +1,5 @@
 import logger from '@pnpm/logger'
 import {ResolveResult} from '@pnpm/resolver-base'
-import got = require('got')
 import git = require('graceful-git')
 import normalizeSsh = require('normalize-ssh')
 import path = require('path')
@@ -11,71 +10,55 @@ export {HostedPackageSpec}
 
 const gitLogger = logger // TODO: add namespace 'git-logger'
 
-let tryGitHubApi = true
-
 export default function (
   opts: {},
 ) {
   return async function resolveGit (
     wantedDependency: {pref: string},
   ): Promise<ResolveResult | null> {
-    const parsedSpec = parsePref(wantedDependency.pref)
+    const parsedSpec = await parsePref(wantedDependency.pref)
 
     if (!parsedSpec) return null
 
-    const isGitHubHosted = parsedSpec.hosted && parsedSpec.hosted.type === 'github'
+    const commit = await resolveRef(parsedSpec.fetchSpec, parsedSpec.gitCommittish || 'master', parsedSpec.gitRange)
+    let resolution
 
-    if (!isGitHubHosted || isSsh(wantedDependency.pref)) {
-      const commit = await resolveRef(parsedSpec.fetchSpec, parsedSpec.gitCommittish || 'master', parsedSpec.gitRange)
-      return {
-        id: parsedSpec.fetchSpec
-          .replace(/^.*:\/\/(git@)?/, '')
-          .replace(/:/g, '+')
-          .replace(/\.git$/, '') + '/' + commit,
-        normalizedPref: parsedSpec.normalizedPref,
-        resolution: {
-          commit,
-          repo: parsedSpec.fetchSpec,
-          type: 'git',
-        } as ({ type: string } & object),
-        resolvedVia: 'git-repository',
+    if (parsedSpec.hosted && !isSsh(parsedSpec.fetchSpec)) {
+      // don't use tarball for ssh url, they are likely private repo
+      const hosted = parsedSpec.hosted!
+      // use resolved committish
+      hosted.committish = commit
+      let tarball: string | void
+
+      if (hosted.type === 'github') {
+        // current hosted-git-info github tarball template points to old url which generates a 302 redirect to new url
+        // force new url for github
+        // TODO: remove this patch after https://github.com/npm/hosted-git-info/pull/34 is released
+        tarball = `https://codeload.github.com/${hosted.user}/${hosted.project}/tar.gz/${commit}`
+      } else {
+        tarball = hosted.tarball()
+      }
+
+      if (tarball) {
+        resolution = {tarball}
       }
     }
 
-    const parts = normalizeRepoUrl(parsedSpec).split('#')
-    const repo = parts[0]
-
-    const ghSpec = {
-      project: parsedSpec.hosted!.project,
-      ref: parsedSpec.hosted!.committish || 'master',
-      user: parsedSpec.hosted!.user,
-    }
-    let commitId: string
-    if (tryGitHubApi) {
-      try {
-        commitId = resolveRefFromRefs(await tryResolveViaGitHubApi(ghSpec), repo, ghSpec.ref, parsedSpec.gitRange)
-      } catch (err) {
-        gitLogger.warn({
-          err,
-          message: `Error while trying to resolve ${parsedSpec.fetchSpec} via GitHub API`,
-        })
-
-        // if it fails once, don't bother retrying for other packages
-        tryGitHubApi = false
-
-        commitId = await resolveRef(repo, parsedSpec.gitCommittish || 'master', parsedSpec.gitRange)
-      }
-    } else {
-      commitId = await resolveRef(repo, parsedSpec.gitCommittish || 'master', parsedSpec.gitRange)
+    if (!resolution) {
+      resolution = {
+        commit,
+        repo: parsedSpec.fetchSpec,
+        type: 'git',
+      } as ({ type: string } & object)
     }
 
-    const tarballResolution = {
-      tarball: `https://codeload.github.com/${ghSpec.user}/${ghSpec.project}/tar.gz/${commitId}`,
-    }
     return {
-      id: `github.com/${ghSpec.user}/${ghSpec.project}/${commitId}`,
+      id: parsedSpec.fetchSpec
+        .replace(/^.*:\/\/(git@)?/, '')
+        .replace(/:/g, '+')
+        .replace(/\.git$/, '') + '/' + commit,
       normalizedPref: parsedSpec.normalizedPref,
-      resolution: tarballResolution,
+      resolution,
       resolvedVia: 'git-repository',
     }
   }
@@ -85,20 +68,28 @@ function resolveVTags (vTags: string[], range: string) {
   return semver.maxSatisfying(vTags, range, true)
 }
 
-async function getRepoRefs (repo: string) {
-  const result = await git(['ls-remote', '--refs', repo])
+async function getRepoRefs (repo: string, ref: string | null) {
+  const gitArgs = ['ls-remote', '--refs', repo]
+  if (ref) {
+    gitArgs.push(ref)
+  }
+  // graceful-git by default retries 10 times, reduce to single retry
+  const result = await git(gitArgs, {retries: 1})
   const refs = result.stdout.split('\n').reduce((obj: object, line: string) => {
     const commitAndRef = line.split('\t')
     const commit = commitAndRef[0]
-    const ref = commitAndRef[1]
-    obj[ref] = commit
+    const refName = commitAndRef[1]
+    obj[refName] = commit
     return obj
   }, {})
   return refs
 }
 
 async function resolveRef (repo: string, ref: string, range?: string) {
-  const refs = await getRepoRefs(repo)
+  if (ref.match(/^[0-9a-f]{40}$/)) {
+    return ref
+  }
+  const refs = await getRepoRefs(repo, range ? null : ref)
   return resolveRefFromRefs(refs, repo, ref, range)
 }
 
@@ -108,8 +99,7 @@ function resolveRefFromRefs (refs: {[ref: string]: string}, repo: string, ref: s
       refs[ref] ||
       refs[`refs/tags/${ref}^{}`] || // prefer annotated tags
       refs[`refs/tags/${ref}`] ||
-      refs[`refs/heads/${ref}`] ||
-      (ref.match(/^[0-9a-f]{40}/) || [])[0]
+      refs[`refs/heads/${ref}`]
 
     if (!commitId) {
       throw new Error(`Could not resolve ${ref} to a commit of ${repo}.`)
@@ -140,39 +130,7 @@ function resolveRefFromRefs (refs: {[ref: string]: string}, repo: string, ref: s
   }
 }
 
-function normalizeRepoUrl (parsedSpec: HostedPackageSpec) {
-  const hosted = <any>parsedSpec.hosted // tslint:disable-line
-  return hosted.getDefaultRepresentation() === 'shortcut' ? hosted.git() : hosted.toString()
-}
-
 function isSsh (gitSpec: string): boolean {
   return gitSpec.substr(0, 10) === 'git+ssh://'
     || gitSpec.substr(0, 4) === 'git@'
-}
-
-/**
- * Resolves a 'hosted' package hosted on 'github'.
- */
-async function tryResolveViaGitHubApi (
-  spec: {
-    user: string,
-    project: string,
-  },
-) {
-  const url = `https://api.github.com/repos/${spec.user}/${spec.project}/git/refs`
-  const response = await got(url, {json: true})
-  return response.body.reduce((acc: object, refInfo: RefInfo) => {
-    acc[refInfo.ref] = refInfo.object.sha
-    return acc
-  }, {})
-}
-
-interface RefInfo {
-  ref: string,
-  url: string,
-  object: {
-    sha: string,
-    type: 'commit' | 'tag',
-    url: string,
-  },
 }

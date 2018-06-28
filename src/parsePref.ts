@@ -1,3 +1,5 @@
+import got = require('got')
+import git = require('graceful-git')
 import HostedGit = require('hosted-git-info')
 import url = require('url')
 
@@ -5,11 +7,10 @@ export type HostedPackageSpec = ({
   fetchSpec: string,
   hosted?: {
     type: string,
-    shortcut: string,
-    sshUrl: string,
     user: string,
     project: string,
     committish: string,
+    tarball (): string | void,
   },
   normalizedPref: string,
   gitCommittish: string | null,
@@ -26,10 +27,10 @@ const gitProtocols = new Set([
   'git+ssh',
 ])
 
-export default function parsePref (pref: string): HostedPackageSpec | null {
-  const hosted = HostedGit.fromUrl(pref, {noGitPlus: true, noCommittish: true})
+export default async function parsePref (pref: string): Promise<HostedPackageSpec | null> {
+  const hosted = HostedGit.fromUrl(pref)
   if (hosted) {
-    return fromHostedGit(hosted)
+    return await fromHostedGit(hosted)
   }
   const colonsPos = pref.indexOf(':')
   if (colonsPos === -1) return null
@@ -61,11 +62,49 @@ function urlToFetchSpec (urlparse: url.Url) {
   return url.format(urlparse)
 }
 
-function fromHostedGit (hosted: any): HostedPackageSpec { // tslint:disable-line
+async function fromHostedGit (hosted: any): Promise<HostedPackageSpec> { // tslint:disable-line
+  let fetchSpec: string | null = null
+  // try git/https url before fallback to ssh url
+
+  const gitUrl = hosted.git({noCommittish: true})
+  if (gitUrl) {
+    try {
+      await git(['ls-remote', '--exit-code', gitUrl, 'HEAD'], {retries: 0})
+      fetchSpec = gitUrl
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  if (!fetchSpec) {
+    const httpsUrl = hosted.https({noGitPlus: true, noCommittish: true})
+    if (httpsUrl) {
+      try {
+        // when git ls-remote private repo, it askes for login credentials.
+        // use HTTP HEAD request to test whether this is a private repo.
+        // this is very similar to yarn's behaviour.
+        // npm instead tries git ls-remote directly which prompts user for login credentails.
+
+        // HTTP HEAD on https://domain/user/repo, strip out ".git"
+        const response = await got(httpsUrl.substr(0, httpsUrl.length - 4), {method: 'HEAD', followRedirect: false})
+        if (response.statusCode === 200) {
+          fetchSpec = httpsUrl
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }
+
+  if (!fetchSpec) {
+    // use ssh url for likely private repo
+    fetchSpec = hosted.sshurl({noCommittish: true})
+  }
+
   return {
-    fetchSpec: hosted.getDefaultRepresentation() === 'shortcut' ? null : hosted.toString(),
+    fetchSpec: fetchSpec!,
     hosted,
-    normalizedPref: hosted.toString({noGitPlus: false, noCommittish: false}),
+    normalizedPref: hosted.shortcut(),
     ...setGitCommittish(hosted.committish),
   }
 }
