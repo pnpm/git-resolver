@@ -5,7 +5,7 @@ dependencies:
   '@types/semver': 5.5.0
   got: 8.3.1
   graceful-git: 1.0.3
-  hosted-git-info: 2.6.1
+  hosted-git-info: 2.7.1
   normalize-ssh: 1.0.0
   semver: 5.5.0
 devDependencies:
@@ -1199,8 +1199,13 @@ packages:
     resolution:
       integrity: sha1-42w/LSyufXRqhX440Y1fMqeILbg=
   /hosted-git-info/2.6.1:
+    dev: true
     resolution:
       integrity: sha512-Ba4+0M4YvIDUUsprMjhVTU1yN9F2/LJSAl69ZpzaLT4l4j5mwTS6jqqW9Ojvj6lKz/veqPzpJBqGbXspOb533A==
+  /hosted-git-info/2.7.1:
+    dev: false
+    resolution:
+      integrity: sha512-7T/BxH19zbcCTa8XkMlbK5lTo1WtgkFi3GvdWEyNuc4Vex7/9Dqbnpsf4JMydcfj9HCg4zUWFTL3Za6lapg5/w==
   /http-cache-semantics/3.8.1:
     dev: false
     resolution:
@@ -3343,7 +3348,7 @@ specifiers:
   '@types/tape': ^4.2.31
   got: ^8.0.1
   graceful-git: ^1.0.1
-  hosted-git-info: ^2.5.0
+  hosted-git-info: ^2.7.0
   mos: ^2.0.0-alpha.3
   mos-plugin-readme: ^1.0.4
   normalize-ssh: ^1.0.0

@@ -28,16 +28,7 @@ export default function (
       const hosted = parsedSpec.hosted!
       // use resolved committish
       hosted.committish = commit
-      let tarball: string | void
-
-      if (hosted.type === 'github') {
-        // current hosted-git-info github tarball template points to old url which generates a 302 redirect to new url
-        // force new url for github
-        // TODO: remove this patch after https://github.com/npm/hosted-git-info/pull/34 is released
-        tarball = `https://codeload.github.com/${hosted.user}/${hosted.project}/tar.gz/${commit}`
-      } else {
-        tarball = hosted.tarball()
-      }
+      const tarball = hosted.tarball()
 
       if (tarball) {
         resolution = {tarball}
