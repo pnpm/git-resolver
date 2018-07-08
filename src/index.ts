@@ -1,4 +1,3 @@
-import logger from '@pnpm/logger'
 import {ResolveResult} from '@pnpm/resolver-base'
 import git = require('graceful-git')
 import normalizeSsh = require('normalize-ssh')
@@ -7,8 +6,6 @@ import semver = require('semver')
 import parsePref, {HostedPackageSpec} from './parsePref'
 
 export {HostedPackageSpec}
-
-const gitLogger = logger // TODO: add namespace 'git-logger'
 
 export default function (
   opts: {},

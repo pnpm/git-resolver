@@ -9,7 +9,6 @@ dependencies:
   normalize-ssh: 1.0.0
   semver: 5.5.0
 devDependencies:
-  '@pnpm/logger': 1.0.2
   '@types/tape': 4.2.32
   mos: 2.0.0-alpha.3
   mos-plugin-readme: 1.0.4
@@ -32,16 +31,6 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha512-1zLmh6tRftQXfZ1IFHq1IexP0KaJhN6pSCA/IzK+Vixn4hPvxwcIbGjKW0KH9hsHSmrPpmSit2EWj7jGNgfa6Q==
-  /@pnpm/logger/1.0.2:
-    dependencies:
-      '@types/node': 10.5.1
-      bole: 3.0.2
-      ndjson: 1.5.0
-    dev: true
-    engines:
-      node: '>=4'
-    resolution:
-      integrity: sha512-A8XbJKvdueazvJGPn1qQ9LL6uopV88ebIT+dJKNQ68gT7yfCbtfT8j5ZzdVczmGbkiuBeZ1VckZerkO0tjOXZA==
   /@pnpm/resolver-base/1.1.0:
     dependencies:
       '@pnpm/types': 1.7.0
@@ -388,13 +377,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-e8tQYnZodmebYDWGH7KMRvtzKXaJHx3BbilrgZCfvyLUYdKpK1t5PSPmpkny/SgiTSCnjfLW7v5rlONXVFkQEA==
-  /bole/3.0.2:
-    dependencies:
-      fast-safe-stringify: 1.1.13
-      individual: 3.0.0
-    dev: true
-    resolution:
-      integrity: sha1-vIpIPKlASdqbg3wa0Rzf6+5uBRQ=
   /boxen/0.5.1:
     dependencies:
       camelcase: 2.1.1
@@ -929,10 +911,6 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha512-7XOMnz8Ynx1gGo/3hyV9loYNPWM94jG3+3T3Y8tsfSstFmETmENCMU/A/zj8Lyaj1lkgEepKepvd6240tBRvlw==
-  /fast-safe-stringify/1.1.13:
-    dev: true
-    resolution:
-      integrity: sha1-oB6c2cnkkXFcmKdaQtXwu9EH/3Y=
   /figures/1.7.0:
     dependencies:
       escape-string-regexp: 1.0.5
@@ -1244,10 +1222,6 @@ packages:
     dev: true
     resolution:
       integrity: sha1-fP+w1d94AFLyRFzaqPXj29sXyw8=
-  /individual/3.0.0:
-    dev: true
-    resolution:
-      integrity: sha1-58pPhfiVewGHNPKFdQ3CLsL5hi0=
   /inflight/1.0.6:
     dependencies:
       once: 1.4.0
@@ -1475,10 +1449,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-mrqyZKfX5EhL7hvqcV6WG1yYjnjeuYDzDhhcAAUrq8Po85NBQBJP+ZDUT75qZQ98IkUoBqdkExkukOU7Ts2wrw==
-  /json-stringify-safe/5.0.1:
-    dev: true
-    resolution:
-      integrity: sha1-Epai1Y/UXxmg9s4B1lcB4sc1tus=
   /json5/0.5.1:
     dev: true
     hasBin: true
@@ -1966,16 +1936,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-z81GNO7nnYMEhrGh9LeymoE4+Yr0Wn5McHIZMK5cfQCl+NDX08sCZgUc9/6MHni9IWuFLm1Z3HTCXu2z9fN62Q==
-  /ndjson/1.5.0:
-    dependencies:
-      json-stringify-safe: 5.0.1
-      minimist: 1.2.0
-      split2: 2.2.0
-      through2: 2.0.3
-    dev: true
-    hasBin: true
-    resolution:
-      integrity: sha1-rmA7NrE0vOw0e0UkIrC/mNWDLsg=
   /next-path/1.0.0:
     dev: true
     engines:
@@ -2789,12 +2749,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-2+EPwgbnmOIl8HjGBXXMd9NAu02vLjOO1nWw4kmeRDFyHn+M/ETfHxQUK0oXg8ctgVnl9t3rosNVsZ1jG61nDA==
-  /split2/2.2.0:
-    dependencies:
-      through2: 2.0.3
-    dev: true
-    resolution:
-      integrity: sha512-RAb22TG39LhI31MbreBgIuKiIKhVsawfTgEGqKHTK87aG+ul/PB8Sqoi3I7kVdRWiCfrKxK3uo4/YUkpNvhPbw==
   /sprintf-js/1.0.3:
     dev: true
     resolution:
@@ -3341,7 +3295,6 @@ registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 8
 shrinkwrapVersion: 3
 specifiers:
-  '@pnpm/logger': ^1.0.0
   '@pnpm/resolver-base': ^1.1.0
   '@types/node': ^10.0.6
   '@types/semver': ^5.5.0
