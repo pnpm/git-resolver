@@ -80,10 +80,10 @@ async function fromHostedGit (hosted: any): Promise<HostedPackageSpec> { // tsli
     const httpsUrl = hosted.https({noGitPlus: true, noCommittish: true})
     if (httpsUrl) {
       try {
-        // when git ls-remote private repo, it askes for login credentials.
-        // use HTTP HEAD request to test whether this is a private repo.
+        // when git ls-remote private repo, it asks for login credentials.
+        // use HTTP HEAD request to test whether this is a private repo, to avoid login prompt.
         // this is very similar to yarn's behaviour.
-        // npm instead tries git ls-remote directly which prompts user for login credentails.
+        // npm instead tries git ls-remote directly which prompts user for login credentials.
 
         // HTTP HEAD on https://domain/user/repo, strip out ".git"
         const response = await got(httpsUrl.substr(0, httpsUrl.length - 4), {method: 'HEAD', followRedirect: false})
