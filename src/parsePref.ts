@@ -45,10 +45,12 @@ export default async function parsePref (pref: string): Promise<HostedPackageSpe
         normalizedPref: pref,
       }
     }
+
+    const committish = (urlparse.hash && urlparse.hash.length > 1) ? decodeURIComponent(urlparse.hash.slice(1)) : null
     return {
       fetchSpec: urlToFetchSpec(urlparse),
       normalizedPref: pref,
-      ...setGitCommittish(urlparse.hash != null ? urlparse.hash.slice(1) : ''),
+      ...setGitCommittish(committish),
     }
   }
   return null
@@ -113,12 +115,10 @@ function setGitCommittish (committish: string | null) {
   if (committish != null && committish.length >= 7 && committish.slice(0, 7) === 'semver:') {
     return {
       gitCommittish: null,
-      gitRange: decodeURIComponent(committish.slice(7)),
+      gitRange: committish.slice(7),
     }
   }
-  return {
-    gitCommittish: committish === '' ? null : committish,
-  }
+  return {gitCommittish: committish}
 }
 
 function matchGitScp (spec: string) {
