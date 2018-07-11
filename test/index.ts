@@ -1,5 +1,6 @@
 import test = require('tape')
 import createResolveFromGit from '@pnpm/git-resolver'
+const git = require('graceful-git')
 
 const resolveFromGit = createResolveFromGit({})
 
@@ -141,13 +142,14 @@ test('resolveFromGit() fails when semver ref not found', async (t) => {
 })
 
 test('resolveFromGit() with commit from non-github repo', async (t) => {
-  const resolveResult = await resolveFromGit({pref: 'git+http://ikt.pm2.io/ikt.git#3325a3e39a502418dc2e2e4bf21529cbbde96228'})
+  const localPath = process.cwd();
+  const resolveResult = await resolveFromGit({pref: `git+file://${localPath}#988c61e11dc8d9ca0b5580cb15291951812549dc`})
   t.deepEqual(resolveResult, {
-    id: 'ikt.pm2.io/ikt/3325a3e39a502418dc2e2e4bf21529cbbde96228',
-    normalizedPref: 'git+http://ikt.pm2.io/ikt.git#3325a3e39a502418dc2e2e4bf21529cbbde96228',
+    id: `${localPath}/988c61e11dc8d9ca0b5580cb15291951812549dc`,
+    normalizedPref: `git+file://${localPath}#988c61e11dc8d9ca0b5580cb15291951812549dc`,
     resolution: {
-      commit: '3325a3e39a502418dc2e2e4bf21529cbbde96228',
-      repo: 'http://ikt.pm2.io/ikt.git',
+      commit: '988c61e11dc8d9ca0b5580cb15291951812549dc',
+      repo: `file://${localPath}`,
       type: 'git',
     },
     resolvedVia: 'git-repository',
@@ -156,13 +158,16 @@ test('resolveFromGit() with commit from non-github repo', async (t) => {
 })
 
 test('resolveFromGit() with commit from non-github repo with no commit', async (t) => {
-  const resolveResult = await resolveFromGit({pref: 'git+http://ikt.pm2.io/ikt.git'})
+  const localPath = process.cwd();
+  const result = await git(['rev-parse', 'master'], {retries: 0});
+  const hash = result.stdout.trim()
+  const resolveResult = await resolveFromGit({pref: `git+file://${localPath}`})
   t.deepEqual(resolveResult, {
-    id: 'ikt.pm2.io/ikt/3325a3e39a502418dc2e2e4bf21529cbbde96228',
-    normalizedPref: 'git+http://ikt.pm2.io/ikt.git',
+    id: `${localPath}/${hash}`,
+    normalizedPref: `git+file://${localPath}`,
     resolution: {
-      commit: '3325a3e39a502418dc2e2e4bf21529cbbde96228',
-      repo: 'http://ikt.pm2.io/ikt.git',
+      commit: hash,
+      repo: `file://${localPath}`,
       type: 'git',
     },
     resolvedVia: 'git-repository',
@@ -171,12 +176,12 @@ test('resolveFromGit() with commit from non-github repo with no commit', async (
 })
 
 test('resolveFromGit() bitbucket with commit', async (t) => {
-  const resolveResult = await resolveFromGit({pref: 'bitbucket:huochunpeng/debug-npm#361ff261e60f60a91da09bb259230303ccef8087'})
+  const resolveResult = await resolveFromGit({pref: 'bitbucket:pnpmjs/git-resolver#988c61e11dc8d9ca0b5580cb15291951812549dc'})
   t.deepEqual(resolveResult, {
-    id: 'bitbucket.org/huochunpeng/debug-npm/361ff261e60f60a91da09bb259230303ccef8087',
-    normalizedPref: 'bitbucket:huochunpeng/debug-npm#361ff261e60f60a91da09bb259230303ccef8087',
+    id: 'bitbucket.org/pnpmjs/git-resolver/988c61e11dc8d9ca0b5580cb15291951812549dc',
+    normalizedPref: 'bitbucket:pnpmjs/git-resolver#988c61e11dc8d9ca0b5580cb15291951812549dc',
     resolution: {
-      tarball: 'https://bitbucket.org/huochunpeng/debug-npm/get/361ff261e60f60a91da09bb259230303ccef8087.tar.gz',
+      tarball: 'https://bitbucket.org/pnpmjs/git-resolver/get/988c61e11dc8d9ca0b5580cb15291951812549dc.tar.gz',
     },
     resolvedVia: 'git-repository',
   })
@@ -184,12 +189,14 @@ test('resolveFromGit() bitbucket with commit', async (t) => {
 })
 
 test('resolveFromGit() bitbucket with no commit', async (t) => {
-  const resolveResult = await resolveFromGit({pref: 'bitbucket:huochunpeng/debug-npm'})
+  const resolveResult = await resolveFromGit({pref: 'bitbucket:pnpmjs/git-resolver'})
+  const result = await git(['ls-remote', '--refs', 'https://bitbucket.org/pnpmjs/git-resolver.git', 'master'], {retries: 0});
+  const hash = result.stdout.trim().split('\t')[0]
   t.deepEqual(resolveResult, {
-    id: 'bitbucket.org/huochunpeng/debug-npm/361ff261e60f60a91da09bb259230303ccef8087',
-    normalizedPref: 'bitbucket:huochunpeng/debug-npm',
+    id: `bitbucket.org/pnpmjs/git-resolver/${hash}`,
+    normalizedPref: 'bitbucket:pnpmjs/git-resolver',
     resolution: {
-      tarball: 'https://bitbucket.org/huochunpeng/debug-npm/get/361ff261e60f60a91da09bb259230303ccef8087.tar.gz',
+      tarball: `https://bitbucket.org/pnpmjs/git-resolver/get/${hash}.tar.gz`,
     },
     resolvedVia: 'git-repository',
   })
@@ -197,12 +204,14 @@ test('resolveFromGit() bitbucket with no commit', async (t) => {
 })
 
 test('resolveFromGit() bitbucket with branch', async (t) => {
-  const resolveResult = await resolveFromGit({pref: 'bitbucket:huochunpeng/debug-npm#branch'})
+  const resolveResult = await resolveFromGit({pref: 'bitbucket:pnpmjs/git-resolver#master'})
+  const result = await git(['ls-remote', '--refs', 'https://bitbucket.org/pnpmjs/git-resolver.git', 'master'], {retries: 0});
+  const hash = result.stdout.trim().split('\t')[0]
   t.deepEqual(resolveResult, {
-    id: 'bitbucket.org/huochunpeng/debug-npm/f34a78790bc232e678c9169e5c30cba72458639b',
-    normalizedPref: 'bitbucket:huochunpeng/debug-npm#branch',
+    id: `bitbucket.org/pnpmjs/git-resolver/${hash}`,
+    normalizedPref: 'bitbucket:pnpmjs/git-resolver#master',
     resolution: {
-      tarball: 'https://bitbucket.org/huochunpeng/debug-npm/get/f34a78790bc232e678c9169e5c30cba72458639b.tar.gz',
+      tarball: `https://bitbucket.org/pnpmjs/git-resolver/get/${hash}.tar.gz`,
     },
     resolvedVia: 'git-repository',
   })
@@ -210,12 +219,12 @@ test('resolveFromGit() bitbucket with branch', async (t) => {
 })
 
 test('resolveFromGit() bitbucket with tag', async (t) => {
-  const resolveResult = await resolveFromGit({pref: 'bitbucket:huochunpeng/debug-npm#v1.0.0'})
+  const resolveResult = await resolveFromGit({pref: 'bitbucket:pnpmjs/git-resolver#0.3.4'})
   t.deepEqual(resolveResult, {
-    id: 'bitbucket.org/huochunpeng/debug-npm/361ff261e60f60a91da09bb259230303ccef8087',
-    normalizedPref: 'bitbucket:huochunpeng/debug-npm#v1.0.0',
+    id: 'bitbucket.org/pnpmjs/git-resolver/87cf6a67064d2ce56e8cd20624769a5512b83ff9',
+    normalizedPref: 'bitbucket:pnpmjs/git-resolver#0.3.4',
     resolution: {
-      tarball: 'https://bitbucket.org/huochunpeng/debug-npm/get/361ff261e60f60a91da09bb259230303ccef8087.tar.gz',
+      tarball: 'https://bitbucket.org/pnpmjs/git-resolver/get/87cf6a67064d2ce56e8cd20624769a5512b83ff9.tar.gz',
     },
     resolvedVia: 'git-repository',
   })
@@ -223,12 +232,12 @@ test('resolveFromGit() bitbucket with tag', async (t) => {
 })
 
 test('resolveFromGit() gitlab with commit', async (t) => {
-  const resolveResult = await resolveFromGit({pref: 'gitlab:huochunpeng/debug-npm#361ff261e60f60a91da09bb259230303ccef8087'})
+  const resolveResult = await resolveFromGit({pref: 'gitlab:pnpm/git-resolver#988c61e11dc8d9ca0b5580cb15291951812549dc'})
   t.deepEqual(resolveResult, {
-    id: 'gitlab.com/huochunpeng/debug-npm/361ff261e60f60a91da09bb259230303ccef8087',
-    normalizedPref: 'gitlab:huochunpeng/debug-npm#361ff261e60f60a91da09bb259230303ccef8087',
+    id: 'gitlab.com/pnpm/git-resolver/988c61e11dc8d9ca0b5580cb15291951812549dc',
+    normalizedPref: 'gitlab:pnpm/git-resolver#988c61e11dc8d9ca0b5580cb15291951812549dc',
     resolution: {
-      tarball: 'https://gitlab.com/huochunpeng/debug-npm/repository/archive.tar.gz?ref=361ff261e60f60a91da09bb259230303ccef8087',
+      tarball: 'https://gitlab.com/pnpm/git-resolver/repository/archive.tar.gz?ref=988c61e11dc8d9ca0b5580cb15291951812549dc',
     },
     resolvedVia: 'git-repository',
   })
@@ -236,12 +245,14 @@ test('resolveFromGit() gitlab with commit', async (t) => {
 })
 
 test('resolveFromGit() gitlab with no commit', async (t) => {
-  const resolveResult = await resolveFromGit({pref: 'gitlab:huochunpeng/debug-npm'})
+  const resolveResult = await resolveFromGit({pref: 'gitlab:pnpm/git-resolver'})
+  const result = await git(['ls-remote', '--refs', 'https://gitlab.com/pnpm/git-resolver.git', 'master'], {retries: 0});
+  const hash = result.stdout.trim().split('\t')[0]
   t.deepEqual(resolveResult, {
-    id: 'gitlab.com/huochunpeng/debug-npm/361ff261e60f60a91da09bb259230303ccef8087',
-    normalizedPref: 'gitlab:huochunpeng/debug-npm',
+    id: `gitlab.com/pnpm/git-resolver/${hash}`,
+    normalizedPref: 'gitlab:pnpm/git-resolver',
     resolution: {
-      tarball: 'https://gitlab.com/huochunpeng/debug-npm/repository/archive.tar.gz?ref=361ff261e60f60a91da09bb259230303ccef8087',
+      tarball: `https://gitlab.com/pnpm/git-resolver/repository/archive.tar.gz?ref=${hash}`,
     },
     resolvedVia: 'git-repository',
   })
@@ -249,12 +260,14 @@ test('resolveFromGit() gitlab with no commit', async (t) => {
 })
 
 test('resolveFromGit() gitlab with branch', async (t) => {
-  const resolveResult = await resolveFromGit({pref: 'gitlab:huochunpeng/debug-npm#branch'})
+  const resolveResult = await resolveFromGit({pref: 'gitlab:pnpm/git-resolver#master'})
+  const result = await git(['ls-remote', '--refs', 'https://gitlab.com/pnpm/git-resolver.git', 'master'], {retries: 0});
+  const hash = result.stdout.trim().split('\t')[0]
   t.deepEqual(resolveResult, {
-    id: 'gitlab.com/huochunpeng/debug-npm/f34a78790bc232e678c9169e5c30cba72458639b',
-    normalizedPref: 'gitlab:huochunpeng/debug-npm#branch',
+    id: `gitlab.com/pnpm/git-resolver/${hash}`,
+    normalizedPref: 'gitlab:pnpm/git-resolver#master',
     resolution: {
-      tarball: 'https://gitlab.com/huochunpeng/debug-npm/repository/archive.tar.gz?ref=f34a78790bc232e678c9169e5c30cba72458639b',
+      tarball: `https://gitlab.com/pnpm/git-resolver/repository/archive.tar.gz?ref=${hash}`,
     },
     resolvedVia: 'git-repository',
   })
@@ -262,17 +275,18 @@ test('resolveFromGit() gitlab with branch', async (t) => {
 })
 
 test('resolveFromGit() gitlab with tag', async (t) => {
-  const resolveResult = await resolveFromGit({pref: 'gitlab:huochunpeng/debug-npm#v1.0.0'})
+  const resolveResult = await resolveFromGit({pref: 'gitlab:pnpm/git-resolver#0.3.4'})
   t.deepEqual(resolveResult, {
-    id: 'gitlab.com/huochunpeng/debug-npm/361ff261e60f60a91da09bb259230303ccef8087',
-    normalizedPref: 'gitlab:huochunpeng/debug-npm#v1.0.0',
+    id: 'gitlab.com/pnpm/git-resolver/87cf6a67064d2ce56e8cd20624769a5512b83ff9',
+    normalizedPref: 'gitlab:pnpm/git-resolver#0.3.4',
     resolution: {
-      tarball: 'https://gitlab.com/huochunpeng/debug-npm/repository/archive.tar.gz?ref=361ff261e60f60a91da09bb259230303ccef8087',
+      tarball: 'https://gitlab.com/pnpm/git-resolver/repository/archive.tar.gz?ref=87cf6a67064d2ce56e8cd20624769a5512b83ff9',
     },
     resolvedVia: 'git-repository',
   })
   t.end()
 })
+
 test('resolveFromGit() normalizes full url', async (t) => {
   const resolveResult = await resolveFromGit({ pref: 'git+ssh://git@github.com:zkochan/is-negative.git#2.0.1' })
   t.deepEqual(resolveResult, {
