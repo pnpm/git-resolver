@@ -25,6 +25,12 @@ const gitProtocols = new Set([
   'git+ftp',
   'git+file',
   'git+ssh',
+  'http',
+  'https',
+  'rsync',
+  'ftp',
+  'file',
+  'ssh',
 ])
 
 export default async function parsePref (pref: string): Promise<HostedPackageSpec | null> {
