@@ -25,11 +25,6 @@ const gitProtocols = new Set([
   'git+ftp',
   'git+file',
   'git+ssh',
-  'http',
-  'https',
-  'rsync',
-  'ftp',
-  'file',
   'ssh',
 ])
 

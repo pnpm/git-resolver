@@ -161,10 +161,10 @@ test('resolveFromGit() with commit from non-github repo with no commit', async (
   const localPath = process.cwd();
   const result = await git(['rev-parse', 'master'], {retries: 0});
   const hash = result.stdout.trim()
-  const resolveResult = await resolveFromGit({pref: `file://${localPath}`})
+  const resolveResult = await resolveFromGit({pref: `git+file://${localPath}`})
   t.deepEqual(resolveResult, {
     id: `${localPath}/${hash}`,
-    normalizedPref: `file://${localPath}`,
+    normalizedPref: `git+file://${localPath}`,
     resolution: {
       commit: hash,
       repo: `file://${localPath}`,
