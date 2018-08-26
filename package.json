@@ -38,7 +38,7 @@
     "@types/node": "^10.0.6",
     "@types/semver": "^5.5.0",
     "got": "^8.0.1",
-    "graceful-git": "^1.0.1",
+    "graceful-git": "^2.0.0",
     "hosted-git-info": "^2.7.0",
     "normalize-ssh": "^1.0.0",
     "semver": "^5.5.0"
