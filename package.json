@@ -34,7 +34,7 @@
   },
   "homepage": "https://github.com/pnpm/git-resolver#readme",
   "dependencies": {
-    "@pnpm/resolver-base": "^1.1.0",
+    "@pnpm/resolver-base": "^2.0.0",
     "@types/node": "^10.0.6",
     "@types/semver": "^5.5.0",
     "got": "^8.0.1",
