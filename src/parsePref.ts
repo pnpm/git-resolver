@@ -1,6 +1,6 @@
-import got = require('got')
 import git = require('graceful-git')
 import HostedGit = require('hosted-git-info')
+import fetch from 'node-fetch'
 import url = require('url')
 
 export type HostedPackageSpec = ({
@@ -89,8 +89,8 @@ async function fromHostedGit (hosted: any): Promise<HostedPackageSpec> { // tsli
         // npm instead tries git ls-remote directly which prompts user for login credentials.
 
         // HTTP HEAD on https://domain/user/repo, strip out ".git"
-        const response = await got(httpsUrl.substr(0, httpsUrl.length - 4), {method: 'HEAD', followRedirect: false})
-        if (response.statusCode === 200) {
+        const response = await fetch(httpsUrl.substr(0, httpsUrl.length - 4), { method: 'HEAD', follow: 0 })
+        if (response.ok) {
           fetchSpec = httpsUrl
         }
       } catch (e) {
