@@ -1,3 +1,5 @@
+> this package was moved to https://github.com/pnpm/pnpm
+
 # @pnpm/git-resolver
 
 > Resolver for git-hosted packages
